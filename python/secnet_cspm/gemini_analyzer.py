@@ -65,39 +65,24 @@ def _read_findings(path: Path) -> list[dict[str, Any]]:
             })
         return findings
 
-
-def _priority_score(finding: dict[str, Any]) -> tuple[int, int]:
-    """Heuristic ordering only; this is not a CVSS score."""
-    combined = " ".join(
-        str(value)
-        for key, value in finding.items()
-        if any(
-            token in key.lower()
-            for token in (
-                "severity", "risk", "status", "name", "check", "description"
-            )
-        )
-    ).lower()
-
-    severity_score = 0
-    if "critical" in combined:
-        severity_score = 4
-    elif "high" in combined:
-        severity_score = 3
-    elif "medium" in combined:
-        severity_score = 2
-    elif "low" in combined:
-        severity_score = 1
-
-    identifier = str(
-        finding.get("CHECKID")
-        or finding.get("check_id")
-        or finding.get("RESOURCEID")
-        or finding.get("resource_id")
+def _priority_score(finding: dict) -> int:
+    """Return priority based on Prowler finding severity."""
+    severity = str(
+        finding.get("SEVERITY")
+        or finding.get("severity")
         or ""
-    )
-    return severity_score, -sum(ord(char) for char in identifier)
+    ).strip().lower()
 
+    priority = {
+        "critical": 4,
+        "high": 3,
+        "medium": 2,
+        "low": 1,
+        "informational": 0,
+        "info": 0,
+    }
+
+    return priority.get(severity, -1)
 
 def _report_header() -> str:
     return (
