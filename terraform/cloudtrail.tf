@@ -3,7 +3,7 @@
 resource "aws_s3_bucket" "cloudtrail_logs" {
   count  = var.enable_cloudtrail ? 1 : 0
   bucket = "${var.bucket_name}-trail"
-  tags = { Name = "${var.project_name}-cloudtrail-logs", Project = var.project_name, ManagedBy = "Terraform" }
+  tags   = { Name = "${var.project_name}-cloudtrail-logs", Project = var.project_name, ManagedBy = "Terraform" }
 }
 
 resource "aws_s3_bucket_public_access_block" "cloudtrail_logs" {
@@ -49,7 +49,7 @@ resource "aws_s3_bucket_policy" "cloudtrail_logs" {
         Resource  = "${aws_s3_bucket.cloudtrail_logs[0].arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"
         Condition = {
           StringEquals = {
-            "s3:x-amz-acl" = "bucket-owner-full-control"
+            "s3:x-amz-acl"  = "bucket-owner-full-control"
             "aws:SourceArn" = "arn:${data.aws_partition.current.partition}:cloudtrail:${var.aws_region}:${data.aws_caller_identity.current.account_id}:trail/${var.project_name}-trail"
           }
         }
@@ -67,5 +67,5 @@ resource "aws_cloudtrail" "cspm" {
   enable_logging                = true
   enable_log_file_validation    = true
   depends_on                    = [aws_s3_bucket_policy.cloudtrail_logs]
-  tags = { Project = var.project_name, ManagedBy = "Terraform" }
+  tags                          = { Project = var.project_name, ManagedBy = "Terraform" }
 }
