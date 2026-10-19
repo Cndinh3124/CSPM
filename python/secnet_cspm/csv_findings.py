@@ -50,12 +50,13 @@ def export_failures(source_dir: Path, output_csv: Path) -> int:
 
     output_resolved = output_csv.resolve()
     candidates = sorted(
-        (
-            path for path in source_dir.rglob("*.csv")
+    	(
+            path
+            for path in source_dir.glob("*.csv")
             if path.resolve() != output_resolved
-        ),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
+    	),
+    	key=lambda path: path.stat().st_mtime,
+    	reverse=True,
     )
 
     source = None
@@ -89,10 +90,13 @@ def export_failures(source_dir: Path, output_csv: Path) -> int:
 
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     with output_csv.open("w", encoding="utf-8-sig", newline="") as output_file:
-        writer = csv.DictWriter(output_file, fieldnames=headers)
-        writer.writeheader()
-        writer.writerows(rows)
-
+    	writer = csv.DictWriter(
+            output_file,
+            fieldnames=headers,
+            dialect=dialect,
+    	)
+    	writer.writeheader()
+    	writer.writerows(rows)
     print(f"CSV nguồn: {source}")
     print(f"Đã xuất {len(rows)} finding(s) FAIL: {output_csv}")
     return len(rows)
