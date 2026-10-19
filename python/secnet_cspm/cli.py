@@ -10,7 +10,11 @@ from .prowler_runner import run_scan
 def scan() -> None:
     """Run Prowler and export its FAIL findings to a separate CSV."""
     output_dir = project_path(setting("PROWLER_OUTPUT_DIR", "reports/prowler"))
-    run_scan(output_dir, setting("AWS_DEFAULT_REGION"))
+    run_scan(
+    	output_dir,
+    	setting("AWS_DEFAULT_REGION", "ap-southeast-1"),
+    	setting("AWS_PROFILE", "secnet-cspm"),
+    )
     export_failures(
         output_dir,
         project_path(setting("FAIL_CSV_PATH", "reports/findings_fail.csv")),

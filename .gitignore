@@ -14,3 +14,10 @@ terraform/terraform.tfvars
 # Generated scan output can contain sensitive resource metadata
 reports/*
 !reports/.gitkeep
+
+# Generated Prowler scan results
+/output/
+/terraform/output/
+
+# Local backup files
+*.bak

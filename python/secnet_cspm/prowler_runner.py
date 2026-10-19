@@ -1,38 +1,61 @@
-"""Run Prowler CLI. Prowler itself remains responsible for security checks."""
+
+"""Run Prowler CLI with an explicit AWS profile and region."""
 import os
 import shutil
 import subprocess
 from pathlib import Path
 
 
-def run_scan(output_dir: Path, aws_region: str = "") -> None:
-    """Run an AWS scan and ask Prowler to write CSV findings."""
+def run_scan(
+    output_dir: Path,
+    aws_region: str = "ap-southeast-1",
+    aws_profile: str = "secnet-cspm",
+) -> None:
+    """Run a scoped AWS scan and export FAIL findings to CSV."""
     prowler = shutil.which("prowler")
     if not prowler:
         raise RuntimeError(
-            "Không tìm thấy lệnh 'prowler'. Hãy cài Prowler và kiểm tra PATH."
+            "Không tìm thấy lệnh 'prowler'. Hãy kiểm tra môi trường và PATH."
         )
 
+    if not aws_profile:
+        raise ValueError("AWS profile không được để trống.")
+
+    if not aws_region:
+        raise ValueError("AWS region không được để trống.")
+
     output_dir.mkdir(parents=True, exist_ok=True)
+
     command = [
         prowler,
         "aws",
+        "--profile", aws_profile,
+        "--region", aws_region,
         "--status", "FAIL",
         "--output-formats", "csv",
         "--output-directory", str(output_dir),
+        "--no-banner",
     ]
 
-    # Set a default region for SDK calls. Prowler may evaluate checks across
-    # multiple regions according to its own configuration and CLI options.
     env = os.environ.copy()
-    if aws_region:
-        env["AWS_DEFAULT_REGION"] = aws_region
+    env["AWS_PROFILE"] = aws_profile
+    env["AWS_DEFAULT_REGION"] = aws_region
 
-    print("Đang chạy Prowler. Lệnh:", " ".join(command))
+    print(f"AWS profile: {aws_profile}")
+    print(f"AWS region: {aws_region}")
+    print("Đang chạy Prowler:", " ".join(command))
+
     result = subprocess.run(command, env=env, check=False)
 
-    if result.returncode != 0:
+    if result.returncode == 0:
+        print("Prowler hoàn tất.")
+    elif result.returncode == 3:
+        print(
+            "Prowler hoàn tất và có finding FAIL. "
+            "Tiếp tục xử lý báo cáo."
+        )
+    else:
         raise RuntimeError(
-            f"Prowler kết thúc với mã {result.returncode}. "
-            "Hãy đọc log phía trên; không xem lần quét lỗi là kết quả hợp lệ."
+            f"Prowler gặp lỗi thực thi với mã {result.returncode}. "
+            "Không tiếp tục pipeline."
         )
