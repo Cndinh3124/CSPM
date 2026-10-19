@@ -1,0 +1,16 @@
+# Secrets and local configuration
+.env
+.venv/
+__pycache__/
+*.py[cod]
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+terraform/terraform.tfvars
+
+# Generated scan output can contain sensitive resource metadata
+reports/*
+!reports/.gitkeep
