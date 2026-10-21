@@ -21,3 +21,8 @@ reports/*
 
 # Local backup files
 *.bak
+
+# Local Prowler scan output
+/compliance-test/
+/dashboard-latest/
+/output-latest/
